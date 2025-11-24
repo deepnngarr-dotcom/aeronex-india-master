@@ -8,7 +8,7 @@ import {
 
 // --- ADD THESE FIREBASE IMPORTS ---
 import { db } from './firebase'; 
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where, deleteDoc, doc } from 'firebase/firestore';
 
 /** MOCK DATA */
 const aircraftData = [
@@ -225,24 +225,40 @@ const App = () => {
   }, []);
 
   // SEED DATABASE FUNCTION (Uses your local arrays to populate the cloud)
+ // SMART SEED FUNCTION (Checks for duplicates before adding)
+  // SMART SEED FUNCTION (Prevents Duplicates)
   const seedDatabase = async () => {
-    const confirm = window.confirm("This will upload your local data to Firebase. Continue?");
+    // 1. Ask for confirmation
+    const confirm = window.confirm("This will upload data to Firebase. Duplicates will be skipped. Continue?");
     if (!confirm) return;
     
     setLoading(true);
-    // Combine your existing local arrays
     const allItems = [...aircraftData, ...droneData];
+    let added = 0;
+    let skipped = 0;
     
     for (const item of allItems) {
       try {
-        await addDoc(collection(db, "inventory"), item);
-        console.log("Uploaded:", item.model);
+        // 2. CHECK: Does this model already exist?
+        const q = query(collection(db, "inventory"), where("model", "==", item.model));
+        const querySnapshot = await getDocs(q);
+
+        // 3. DECIDE: If empty, ADD it. If found, SKIP it.
+        if (querySnapshot.empty) {
+          await addDoc(collection(db, "inventory"), item);
+          console.log("✅ Added:", item.model);
+          added++;
+        } else {
+          console.log("⚠️ Skipped (Duplicate):", item.model);
+          skipped++;
+        }
       } catch (e) {
         console.error("Error adding document: ", e);
       }
     }
     
-    alert("Database Seeded! Refresh the page.");
+    // 4. Report results
+    alert(`Process Done!\nAdded: ${added}\nSkipped: ${skipped}`);
     window.location.reload();
   };
 
