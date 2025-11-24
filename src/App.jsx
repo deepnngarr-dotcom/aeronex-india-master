@@ -389,6 +389,28 @@ const App = () => {
         )}
       </div>
 
+        {/* --- ADD THESE SECTIONS SO THE LINKS WORK --- */}
+      <section id="regulatory" className="bg-slate-100 py-16">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4 text-slate-900">Regulatory Hub</h2>
+          <p className="text-slate-600 max-w-2xl mx-auto">Everything you need to know about India's Drone Rules 2021, Green Zones, and Aircraft Import Guidelines (DGCA CAR).</p>
+        </div>
+      </section>
+
+      <section id="services" className="py-16">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4 text-slate-900">Our Services</h2>
+          <p className="text-slate-600 max-w-2xl mx-auto">From Aviation Financing and Insurance to connecting you with DGCA-certified Pilot Training schools.</p>
+        </div>
+      </section>
+
+      {/* FOOTER (Keep existing) */}
+      <footer className="bg-slate-950 text-slate-400 py-12 border-t border-slate-900">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p>&copy; 2025 AeroNex India. All rights reserved.</p>
+        </div>
+      </footer>
+
       {selectedItem && <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
