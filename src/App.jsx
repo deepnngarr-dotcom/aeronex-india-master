@@ -320,6 +320,47 @@ const App = () => {
         </div>
       </nav>
 
+      {/* HERO SECTION */}
+      <div className="relative bg-slate-900 overflow-hidden">
+        {/* Background Overlay */}
+        <div className="absolute inset-0 z-0 opacity-40">
+           <img 
+            src="https://images.unsplash.com/photo-1483304528321-0674f0040030?auto=format&fit=crop&q=80&w=2000" 
+            className="w-full h-full object-cover" 
+            alt="Aviation Background"
+          />
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-20 md:py-32 flex flex-col items-center text-center">
+          <span className="inline-block py-1 px-3 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-sm font-semibold mb-6 backdrop-blur-sm">
+            The #1 Marketplace for Indian Aviation
+          </span>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+            Buy with Confidence.<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+              Fly without Red Tape.
+            </span>
+          </h1>
+          
+          {/* Search Box */}
+          <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl p-2 flex flex-col md:flex-row gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-3.5 text-slate-400" size={20} />
+              <input 
+                type="text" 
+                placeholder="Search 'HondaJet', 'DJI Mavic', 'Survey Drone'..." 
+                className="w-full pl-12 pr-4 py-3 rounded-lg bg-slate-50 focus:bg-white border border-transparent focus:border-blue-500 outline-none transition-all text-slate-800 placeholder:text-slate-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-blue-200/50">
+              Search
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 py-12">
         {loading ? (
           <p className="text-center text-slate-500">Loading...</p>
