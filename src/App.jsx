@@ -3,12 +3,15 @@ import {
   Plane, Rocket, Search, Filter, Info, CheckCircle, XCircle, 
   Calculator, MapPin, ShieldCheck, Wind, Users, Briefcase, 
   ChevronRight, Menu, X, ArrowRightLeft, BadgeIndianRupee,
-  Database, UploadCloud // <--- ADD THESE TWO NEW ICONS
+  
+  // New Icons for Admin/Database (Add these)
+  Database, UploadCloud, Lock, LogOut, User 
 } from 'lucide-react';
 
 // --- ADD THESE FIREBASE IMPORTS ---
-import { db } from './firebase'; 
+import { db, auth } from './firebase'; 
 import { collection, getDocs, addDoc, query, where, deleteDoc, doc } from 'firebase/firestore';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'; 
 
 /** MOCK DATA */
 const aircraftData = [
@@ -197,69 +200,90 @@ const DetailModal = ({ item, onClose }) => {
   );
 };
 
+const LoginModal = ({ onClose }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      onClose();
+    } catch (err) {
+      setError("Invalid credentials.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-xl p-8 w-full max-w-sm shadow-2xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-slate-900">Admin Login</h2>
+          <button onClick={onClose}><X size={20} className="text-slate-500" /></button>
+        </div>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-lg p-2" placeholder="Email" required />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-lg p-2" placeholder="Password" required />
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold">Sign In</button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  // REAL DATABASE STATE
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // AUTH STATE
+  const [user, setUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
 
-  // FETCH DATA FROM FIREBASE
+  // Listen for Login
+  useEffect(() => {
+    return onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
+  }, []);
+
+  // Fetch Data
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "inventory"));
-        // If database is empty, we don't crash, just show empty state
-        const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setInventory(items);
+        const q = await getDocs(collection(db, "inventory"));
+        setInventory(q.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      }
+      } catch (e) { console.error(e); setLoading(false); }
     };
     fetchInventory();
   }, []);
 
-  // SEED DATABASE FUNCTION (Uses your local arrays to populate the cloud)
- // SMART SEED FUNCTION (Checks for duplicates before adding)
-  // SMART SEED FUNCTION (Prevents Duplicates)
+  // Admin Functions
   const seedDatabase = async () => {
-    // 1. Ask for confirmation
-    const confirm = window.confirm("This will upload data to Firebase. Duplicates will be skipped. Continue?");
-    if (!confirm) return;
-    
+    if (!user) return;
+    if (!window.confirm("Upload local data?")) return;
     setLoading(true);
+    // NOTE: This uses your existing arrays from higher up in the file
     const allItems = [...aircraftData, ...droneData];
-    let added = 0;
-    let skipped = 0;
-    
     for (const item of allItems) {
-      try {
-        // 2. CHECK: Does this model already exist?
-        const q = query(collection(db, "inventory"), where("model", "==", item.model));
-        const querySnapshot = await getDocs(q);
-
-        // 3. DECIDE: If empty, ADD it. If found, SKIP it.
-        if (querySnapshot.empty) {
-          await addDoc(collection(db, "inventory"), item);
-          console.log("✅ Added:", item.model);
-          added++;
-        } else {
-          console.log("⚠️ Skipped (Duplicate):", item.model);
-          skipped++;
-        }
-      } catch (e) {
-        console.error("Error adding document: ", e);
-      }
+      const q = query(collection(db, "inventory"), where("model", "==", item.model));
+      const snap = await getDocs(q);
+      if (snap.empty) await addDoc(collection(db, "inventory"), item);
     }
-    
-    // 4. Report results
-    alert(`Process Done!\nAdded: ${added}\nSkipped: ${skipped}`);
-    window.location.reload();
+    alert("Done!"); window.location.reload();
+  };
+
+  const clearDatabase = async () => {
+    if (!user) return;
+    if (!window.confirm("Clear database?")) return;
+    setLoading(true);
+    const snap = await getDocs(collection(db, "inventory"));
+    await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "inventory", d.id))));
+    alert("Cleared!"); window.location.reload();
   };
 
   const filteredItems = inventory.filter(item => {
@@ -271,75 +295,61 @@ const App = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('all')}>
-              <div className="bg-blue-600 p-1.5 rounded-lg text-white"><Plane size={24} className="transform -rotate-45" /></div>
-              <span className="text-2xl font-bold tracking-tight text-slate-900">Aero<span className="text-blue-600">Nex</span></span>
-            </div>
-            
-            {/* ADMIN BUTTON FOR SEEDING DATA */}
-            <button onClick={seedDatabase} className="hidden md:flex items-center gap-2 text-xs bg-red-100 text-red-600 px-3 py-1 rounded-full hover:bg-red-200 border border-red-200">
-              <UploadCloud size={14}/> Seed DB (Admin)
-            </button>
-
-            <div className="hidden md:flex items-center space-x-8">
-              <button onClick={() => setActiveTab('aircraft')} className="text-sm font-medium text-slate-600 hover:text-blue-600">Private Jets</button>
-              <button onClick={() => setActiveTab('drone')} className="text-sm font-medium text-slate-600 hover:text-blue-600">Drones</button>
-            </div>
-            <div className="md:hidden">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600">{isMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('all')}>
+            <div className="bg-blue-600 p-1.5 rounded-lg text-white"><Plane size={24} /></div>
+            <span className="text-2xl font-bold text-slate-900">Aero<span className="text-blue-600">Nex</span></span>
           </div>
+          
+          {user ? (
+            <div className="hidden md:flex items-center gap-2">
+              <button onClick={seedDatabase} className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full flex gap-1"><UploadCloud size={14}/> Seed</button>
+              <button onClick={clearDatabase} className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full flex gap-1"><XCircle size={14}/> Clear</button>
+              <button onClick={() => signOut(auth)} className="text-sm text-red-600 flex gap-1 ml-2"><LogOut size={16}/> Logout</button>
+            </div>
+          ) : (
+            <button onClick={() => setShowLogin(true)} className="hidden md:flex text-sm font-medium text-slate-600 hover:text-blue-600 gap-1"><Lock size={16}/> Login</button>
+          )}
+          
+           {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600">
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
         </div>
       </nav>
 
-      {/* HERO SECTION */}
-      <div className="relative bg-slate-900 overflow-hidden">
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-20 md:py-32 flex flex-col items-center text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">Buy with Confidence. <span className="text-blue-400">Fly without Red Tape.</span></h1>
-          <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl p-2 flex flex-col md:flex-row gap-2">
-            <input type="text" placeholder="Search models..." className="w-full px-4 py-3 rounded-lg outline-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold">Search</button>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 py-12">
         {loading ? (
-          <div className="text-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-slate-500">Connecting to Google Cloud...</p>
-          </div>
+          <p className="text-center text-slate-500">Loading...</p>
         ) : filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {filteredItems.map((item) => (
-              <div key={item.id} onClick={() => setSelectedItem(item)} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl cursor-pointer">
-                <div className="h-48 overflow-hidden relative">
-                  <img src={item.images ? item.images[0] : 'https://via.placeholder.com/400'} alt={item.model} className="w-full h-full object-cover" />
-                  <div className="absolute top-4 left-4 bg-white/90 px-3 py-1 rounded-full text-xs font-bold text-slate-800">{item.category}</div>
-                </div>
+              <div key={item.id} onClick={() => setSelectedItem(item)} className="bg-white rounded-2xl border hover:shadow-xl cursor-pointer overflow-hidden">
+                <img src={item.images ? item.images[0] : ''} className="h-48 w-full object-cover" alt={item.model} />
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">{item.model}</h3>
-                  <p className="text-slate-600 text-sm line-clamp-2 mb-4">{item.description}</p>
-                  <div className="flex justify-between items-center text-sm font-semibold text-slate-900">
+                  <h3 className="text-xl font-bold">{item.model}</h3>
+                  <p className="text-slate-600 text-sm mb-4 line-clamp-2">{item.description}</p>
+                  <div className="flex justify-between font-semibold text-sm">
                     <span>{item.price}</span>
-                    <span className="text-blue-600 flex items-center gap-1">Details <ChevronRight size={16} /></span>
+                    <span className="text-blue-600 flex items-center">Details <ChevronRight size={16}/></span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
-            <Database size={48} className="mx-auto text-slate-300 mb-4" />
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Database is Empty</h3>
-            <p className="text-slate-500 mb-4">Click the "Seed DB" button in the navigation bar to populate initial data.</p>
+          <div className="text-center py-20 border-2 border-dashed rounded-xl">
+            <Database size={48} className="mx-auto text-slate-300 mb-4"/>
+            <h3 className="text-xl font-bold">Database Empty</h3>
+            <p className="text-slate-500">Admin login required to seed data.</p>
           </div>
         )}
       </div>
 
       {selectedItem && <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   );
 };

@@ -1,8 +1,8 @@
 // 1. Imports
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-
-// Your web app's Firebase configuration
+import { getAuth } from "firebase/auth";
+// web app's Firebase configuration
 const firebaseConfig = {
  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -16,3 +16,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
+export const auth = getAuth(app);
