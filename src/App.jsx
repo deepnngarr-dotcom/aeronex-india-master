@@ -61,7 +61,7 @@ const aircraftData = [
     category: 'Midsize Jet',
     manufacturer: 'Cessna',
     model: 'Citation XLS+',
-    price: '₹ 76 Cr - ₹ 85 Cr',
+    price: '₹ 75 Cr - ₹ 85 Cr',
     range: '1,858 nm',
     speed: '441 ktas',
     capacity: '8-9 Passengers',
@@ -267,7 +267,7 @@ const App = () => {
     if (!user) return;
     if (!window.confirm("Upload local data?")) return;
     setLoading(true);
-    // NOTE: This uses your existing arrays (like aircraftData, droneData) from higher up in the file
+    
     const allItems = [...aircraftData, ...droneData];
     for (const item of allItems) {
       const q = query(collection(db, "inventory"), where("model", "==", item.model));
@@ -430,7 +430,7 @@ const App = () => {
               </div>
             </div>
             <div className="relative h-80 bg-slate-100 rounded-2xl overflow-hidden shadow-2xl">
-               <img src="https://images.unsplash.com/photo-1556382260-2fe84ce799f9?q=80&w=1000" className="w-full h-full object-cover opacity-90" alt="About Us" />
+               <img src="https://www.parcelandpostaltechnologyinternational.com/wp-content/uploads/2023/02/Featured-pic-e1676909991205-1024x489.jpg" className="w-full h-full object-cover opacity-90" alt="About Us" />
                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent flex items-end p-8">
                  <p className="text-white font-medium">"Democratizing the skies for everyone."</p>
                </div>
