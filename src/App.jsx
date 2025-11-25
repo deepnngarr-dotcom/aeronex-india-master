@@ -61,7 +61,7 @@ const aircraftData = [
     category: 'Midsize Jet',
     manufacturer: 'Cessna',
     model: 'Citation XLS+',
-    price: '₹ 75 Cr - ₹ 85 Cr',
+    price: '₹ 76 Cr - ₹ 85 Cr',
     range: '1,858 nm',
     speed: '441 ktas',
     capacity: '8-9 Passengers',
