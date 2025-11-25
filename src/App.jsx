@@ -4,11 +4,11 @@ import {
   Calculator, MapPin, ShieldCheck, Wind, Users, Briefcase, 
   ChevronRight, Menu, X, ArrowRightLeft, BadgeIndianRupee,
   
-  // New Icons for Admin/Database (Add these)
+  //Icons for Admin/Database
   Database, UploadCloud, Lock, LogOut, User 
 } from 'lucide-react';
 
-// --- ADD THESE FIREBASE IMPORTS ---
+// --- FIREBASE IMPORTS ---
 import { db, auth } from './firebase'; 
 import { collection, getDocs, addDoc, query, where, deleteDoc, doc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'; 
@@ -267,7 +267,7 @@ const App = () => {
     if (!user) return;
     if (!window.confirm("Upload local data?")) return;
     setLoading(true);
-    // NOTE: This uses your existing arrays from higher up in the file
+    // NOTE: This uses your existing arrays (like aircraftData, droneData) from higher up in the file
     const allItems = [...aircraftData, ...droneData];
     for (const item of allItems) {
       const q = query(collection(db, "inventory"), where("model", "==", item.model));
@@ -389,7 +389,7 @@ const App = () => {
         )}
       </div>
 
-        {/* --- ADD THESE SECTIONS SO THE LINKS WORK --- */}
+        {/* --- SECTIONS FOR THE LINKS --- */}
       <section id="regulatory" className="bg-slate-100 py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4 text-slate-900">Regulatory Hub</h2>
@@ -404,7 +404,42 @@ const App = () => {
         </div>
       </section>
 
-      {/* FOOTER (Keep existing) */}
+        {/* --- ABOUT THE PROJECT --- */}
+      <section id="about" className="py-20 bg-white border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="text-blue-600 font-bold tracking-wider uppercase text-xs">Master's Project 2025</span>
+              <span className='ml-2 text-sm text-slate-500'>by Deepak Nagar</span>
+              <h2 className="text-4xl font-bold text-slate-900 mb-6 mt-2">Bridging the Gap in Indian Aviation</h2>
+              <p className="text-slate-600 leading-relaxed mb-6">
+                The Indian aviation market is fragmented. Buyers struggle to find transparent pricing for private jets, while drone operators face complex regulatory hurdles (DGCA).
+              </p>
+              <p className="text-slate-600 leading-relaxed mb-8">
+                <strong className="text-slate-900">AeroNex India</strong> was built to solve this by providing a unified platform that combines real-time inventory with automated regulatory compliance checks.
+              </p>
+              <div className="flex gap-4">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <h4 className="font-bold text-2xl text-blue-600">20+</h4>
+                  <p className="text-xs text-slate-500">Models Listed</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <h4 className="font-bold text-2xl text-emerald-600">100%</h4>
+                  <p className="text-xs text-slate-500">DGCA Compliant</p>
+                </div>
+              </div>
+            </div>
+            <div className="relative h-80 bg-slate-100 rounded-2xl overflow-hidden shadow-2xl">
+               <img src="https://images.unsplash.com/photo-1556382260-2fe84ce799f9?q=80&w=1000" className="w-full h-full object-cover opacity-90" alt="About Us" />
+               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent flex items-end p-8">
+                 <p className="text-white font-medium">"Democratizing the skies for everyone."</p>
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
       <footer className="bg-slate-950 text-slate-400 py-12 border-t border-slate-900">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p>&copy; 2025 AeroNex India. All rights reserved.</p>
